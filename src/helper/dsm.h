@@ -32,6 +32,8 @@
 #define DSM_SEND_TIME				2200		/**< Time between sending both Channel A and Channel B */
 #define DSM_CHA_CHB_SEND_TIME		400			/**< Time between Channel A and Channel B send */
 
+#define DSM_FTRANSFER_RECV_TIME 1000 		/**< Time between a fast transfer receive */
+
 /* The maximum channekl number for DSM2 and DSMX */
 #define DSM_MAX_CHANNEL				0x4F		/**< Maximum channel number used for DSM2 and DSMX */
 #define DSM_BIND_PACKETS			300			/**< The amount of bind packets to send */

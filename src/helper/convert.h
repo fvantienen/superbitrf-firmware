@@ -21,7 +21,7 @@
 #define PROTOCOL_CONVERT_H_
 
 #ifndef MAX_BUFFER
-#define MAX_BUFFER			2048
+#define MAX_BUFFER			256
 #endif
 
 /**

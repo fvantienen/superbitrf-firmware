@@ -29,6 +29,7 @@ void (*protocol_functions[][3])(void) = {
 	{dsm_receiver_init, dsm_receiver_start, dsm_receiver_stop},
 	{dsm_transmitter_init, dsm_transmitter_start, dsm_transmitter_stop},
 	{dsm_mitm_init, dsm_mitm_start, dsm_mitm_stop},
+	{dsm_ftransmit_init, dsm_ftransmit_start, dsm_ftransmit_stop},
 };
 
 /* We are assuming we are using the STM32F103TBU6.
@@ -39,8 +40,8 @@ void (*protocol_functions[][3])(void) = {
 
 /* Default configuration settings. */
 const struct Config init_config = {
-			.version				= 0x01,
-			.protocol				= DSM_MITM,
+			.version				= 0x10,
+			.protocol				= DSM_FTRANSMIT,
 			.protocol_start 			= true,
 			.debug_enable 				= false,
 			.debug_button				= true,
@@ -51,7 +52,7 @@ const struct Config init_config = {
 			.dsm_start_bind				= false,
 			.dsm_max_channel			= DSM_MAX_CHANNEL,
 			.dsm_bind_channel			= -1,
-			.dsm_bind_mfg_id			= {0xDC, 0x72, 0x96, 0x4F},
+			.dsm_bind_mfg_id			= {0x63, 0x74, 0x44, 0x2C},
 			.dsm_protocol				= 0x01,
 			.dsm_num_channels			= 6,
 			.dsm_force_dsm2				= false,

@@ -583,11 +583,11 @@ bool cdcacm_send(const char *data, const int size) {
 		return true;
 
 	while ((size - (i * 64)) > 64) {
-		while (usbd_ep_write_packet(cdacm_usbd_dev, 0x82, (data + (i * 64)), 64) == 0);
+		usbd_ep_write_packet(cdacm_usbd_dev, 0x82, (data + (i * 64)), 64);
 		i++;
 	}
 
-	while (usbd_ep_write_packet(cdacm_usbd_dev, 0x82, (data + (i * 64)), size - (i * 64)) == 0);
+	usbd_ep_write_packet(cdacm_usbd_dev, 0x82, (data + (i * 64)), size - (i * 64));
 
 	return true;
 }

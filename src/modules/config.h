@@ -28,6 +28,7 @@
 #include "../protocol/dsm_receiver.h"
 #include "../protocol/dsm_transmitter.h"
 #include "../protocol/dsm_mitm.h"
+#include "../protocol/dsm_ftransmit.h"
 
 /**
  * Includes for debugging
@@ -54,6 +55,7 @@ enum Protocol {
 	DSM_RECEIVER		= 0,
 	DSM_TRANSMITTER,
 	DSM_MITM,
+	DSM_FTRANSMIT,
 	DSM_SCANNER,
 	DSM_HIJACK,
 	TUDELFT_DELFY

@@ -439,7 +439,6 @@ void dsm_mitm_receive_cb(bool error) {
 			dsm_mitm.crc_seed = ~dsm_mitm.crc_seed;
 
 		// Stop the timer
-		timer_dsm_stop();
 		dsm_mitm.rx_packet_count++;
 		dsm_mitm.missed_packets = 0;
 
@@ -453,8 +452,10 @@ void dsm_mitm_receive_cb(bool error) {
 			DEBUG(protocol, "Receive data channel[0x%02X]: 0x%02X (timing %s: %u)", dsm_mitm.rf_channel_idx, dsm_mitm.rf_channel,
 								dsm_mitm.crc_seed == ((dsm_mitm.mfg_id[0] << 8) + dsm_mitm.mfg_id[1])? "short":"long", timer_dsm_get_time());
 
+			timer_dsm_stop();
+
 			// Check if we need to send a packet
-			if(usbrf_config.dsm_mitm_has_uplink) {
+			//if(usbrf_config.dsm_mitm_has_uplink) {
 				// Only create packet without packet loss
 				//if(packet[1] == ((dsm_mitm.mfg_id[3]+1+dsm_mitm.packet_loss_bit)&0xFF) || packet[1] == ((~dsm_mitm.mfg_id[3]+1+dsm_mitm.packet_loss_bit)&0xFF)) {
 					dsm_mitm.packet_loss_bit = !dsm_mitm.packet_loss_bit;
@@ -466,7 +467,10 @@ void dsm_mitm_receive_cb(bool error) {
 				// Send the packet with a timeout, need to fix the sleep
 				Delay2(200);
 				cyrf_send_len(dsm_mitm.tx_packet, dsm_mitm.tx_packet_length);
-			} else {
+				dsm_mitm_set_next_channel();
+				cyrf_start_recv();
+				timer_dsm_set(DSM_RECV_TIME);
+			/*} else {
 				// Start receiving on next channel
 				dsm_mitm_set_next_channel();
 				cyrf_start_recv();
@@ -476,7 +480,7 @@ void dsm_mitm_receive_cb(bool error) {
 					timer_dsm_set(DSM_RECV_TIME_SHORT);
 				else
 					timer_dsm_set(DSM_RECV_TIME);
-			}
+			}*/
 
 			// Output the data received
 			cdcacm_send((char*)&packet[2], packet_length-2);
@@ -489,18 +493,19 @@ void dsm_mitm_receive_cb(bool error) {
 				//	dsm_mitm.crc_seed == ((dsm_mitm.mfg_id[0] << 8) + dsm_mitm.mfg_id[1])? "short":"long", timer_dsm_get_time());
 
 			// Go to the next channel if needed
-			if(usbrf_config.dsm_mitm_both_data || dsm_mitm.crc_seed != ((dsm_mitm.mfg_id[0] << 8) + dsm_mitm.mfg_id[1])) {
-				dsm_mitm_set_next_channel();
+			//if(usbrf_config.dsm_mitm_both_data || dsm_mitm.crc_seed != ((dsm_mitm.mfg_id[0] << 8) + dsm_mitm.mfg_id[1])) {
+				//dsm_mitm_set_next_channel();
 
 				// Start the timer (short or long)
-				if(dsm_mitm.crc_seed == ((dsm_mitm.mfg_id[0] << 8) + dsm_mitm.mfg_id[1]))
-					timer_dsm_set(DSM_RECV_TIME_SHORT);
-				else
-					timer_dsm_set(DSM_RECV_TIME);
-			} else {
+				//if(dsm_mitm.crc_seed == ((dsm_mitm.mfg_id[0] << 8) + dsm_mitm.mfg_id[1]))
+				//	timer_dsm_set(DSM_RECV_TIME_SHORT);
+				//else
+			    //dsm_mitm_set_next_channel();
+					//timer_dsm_set(DSM_RECV_TIME + 400);
+			/*} else {
 				// Start the data timer
 				timer_dsm_set(DSM_RECV_TIME_DATA);
-			}
+			}*/
 
 			// Start receiving
 			cyrf_start_recv();
