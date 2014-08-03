@@ -28,6 +28,7 @@
 #include "../protocol/dsm_receiver.h"
 #include "../protocol/dsm_transmitter.h"
 #include "../protocol/dsm_mitm.h"
+#include "../protocol/dsm_scanner.h"
 
 /**
  * Includes for debugging

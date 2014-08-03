@@ -29,6 +29,7 @@ void (*protocol_functions[][3])(void) = {
 	{dsm_receiver_init, dsm_receiver_start, dsm_receiver_stop},
 	{dsm_transmitter_init, dsm_transmitter_start, dsm_transmitter_stop},
 	{dsm_mitm_init, dsm_mitm_start, dsm_mitm_stop},
+	{dsm_scanner_init, dsm_scanner_start, dsm_scanner_stop},
 };
 
 /* We are assuming we are using the STM32F103TBU6.
@@ -39,8 +40,8 @@ void (*protocol_functions[][3])(void) = {
 
 /* Default configuration settings. */
 const struct Config init_config = {
-			.version				= 0x01,
-			.protocol				= DSM_MITM,
+			.version				= 0x04,
+			.protocol				= DSM_SCANNER,
 			.protocol_start 			= true,
 			.debug_enable 				= false,
 			.debug_button				= true,
