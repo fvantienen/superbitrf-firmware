@@ -419,9 +419,7 @@ static int cdcacm_control_request(usbd_device *usbd_dev,
  * CDCACM data recieve callback
  */
 static void cdcacm_data_rx_cb(usbd_device *usbd_dev, u8 ep) {
-	(void) ep;
-	(void) usbd_dev;
-	usbd_ep_nak_set(usbd_dev, 0x01, 1);
+	usbd_ep_nak_set(usbd_dev, ep, 1);
 
 	char buf[64];
 	int len = usbd_ep_read_packet(usbd_dev, 0x01, buf, 64);
@@ -434,16 +432,14 @@ static void cdcacm_data_rx_cb(usbd_device *usbd_dev, u8 ep) {
 		}
 	}
 
-	usbd_ep_nak_set(usbd_dev, 0x01, 0);
+	usbd_ep_nak_set(usbd_dev, ep, 0);
 }
 
 /**
  * CDCACM control recieve callback
  */
 static void cdcacm_control_rx_cb(usbd_device *usbd_dev, u8 ep) {
-	(void) ep;
-	(void) usbd_dev;
-	usbd_ep_nak_set(usbd_dev, 0x03, 1);
+	usbd_ep_nak_set(usbd_dev, ep, 1);
 
 	char buf[64];
 	int len = usbd_ep_read_packet(usbd_dev, 0x03, buf, 64);
@@ -454,7 +450,7 @@ static void cdcacm_control_rx_cb(usbd_device *usbd_dev, u8 ep) {
 		// TODO FIX CONSOLE
 	}
 
-	usbd_ep_nak_set(usbd_dev, 0x03, 0);
+	usbd_ep_nak_set(usbd_dev, ep, 0);
 }
 
 /**
@@ -577,17 +573,16 @@ void cdcacm_register_receive_callback(cdcacm_receive_callback callback) {
  */
 bool cdcacm_send(const char *data, const int size) {
 	int i = 0;
-
+	
 	// Check if really wanna send and someone is listening
 	if(size == 0 || configured != 1 || !cdcacm_data_dtr)
 		return true;
 
 	while ((size - (i * 64)) > 64) {
-		usbd_ep_write_packet(cdacm_usbd_dev, 0x82, (data + (i * 64)), 64);
+		usbd_ep_write_packet(cdacm_usbd_dev, 0x1, (data + (i * 64)), 64);
 		i++;
 	}
 
-	usbd_ep_write_packet(cdacm_usbd_dev, 0x82, (data + (i * 64)), size - (i * 64));
-
+	usbd_ep_write_packet(cdacm_usbd_dev, 0x1, (data + (i * 64)), size - (i * 64));
 	return true;
 }
