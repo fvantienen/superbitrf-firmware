@@ -128,89 +128,98 @@ void dsm_ftransmit_start_transfer(void) {
  * DSM MITM timer callback
  */
 void dsm_ftransmit_timer_cb(void) {
-	// Abort the receive
-	cyrf_set_mode(CYRF_MODE_SYNTH_RX, true);
-	cyrf_write_register(CYRF_RX_ABORT, 0x00);
-
-	DEBUG(protocol, "Lost a packet at channel 0x%02X", dsm_ftransmit.rf_channel);
-
-	// Set RX led off
-#ifdef LED_RX
-	LED_OFF(LED_RX);
-#endif
-
-	// Start the timer
-	timer_dsm_stop();
-	timer_dsm_set(DSM_FTRANSFER_RECV_TIME);
-
-	// Create a packet
-	uint8_t tx_data[14];
-	uint8_t tx_size = convert_extract(&dsm_ftransmit.tx_buffer, tx_data, 14);
-	dsm_ftransmit_create_packet(tx_data, tx_size);
-
-	// Send the packet with a timeout, need to fix the sleep
-	u32 count = 4000;
-	while (count > 0) {
-		count--;
-	}
-	cyrf_send_len(dsm_ftransmit.tx_packet, dsm_ftransmit.tx_packet_length);
+	dsm_ftransmit.timer = true;
 }
 
 /**
- * DSM MITM receive callback
+ * DSM FTRANSMIT loop
  */
-void dsm_ftransmit_receive_cb(bool error) {
-	uint8_t packet_length, packet[16], rx_status;
+void dsm_ftransmit_loop(void) {
+	if(dsm_ftransmit.timer) {
+		// Abort the receive
+		cyrf_set_mode(CYRF_MODE_SYNTH_RX, true);
+		cyrf_write_register(CYRF_RX_ABORT, 0x00);
 
-	// Get the receive count, rx_status and the packet
-	packet_length = cyrf_read_register(CYRF_RX_COUNT);
-	rx_status = cyrf_get_rx_status();
-	cyrf_recv_len(packet, packet_length);
+		DEBUG(protocol, "Lost a packet at channel 0x%02X", dsm_ftransmit.rf_channel);
+
+		// Set RX led off
+	#ifdef LED_RX
+		LED_OFF(LED_RX);
+	#endif
+
+		// Start the timer
+		timer_dsm_stop();
+		timer_dsm_set(DSM_FTRANSFER_RECV_TIME);
+
+		// Create a packet
+		uint8_t tx_data[14];
+		uint8_t tx_size = convert_extract(&dsm_ftransmit.tx_buffer, tx_data, 14);
+		dsm_ftransmit_create_packet(tx_data, tx_size);
+
+		// Send the packet with a timeout, need to fix the sleep
+		u32 count = 4000;
+		while (count > 0) {
+			count--;
+		}
+		cyrf_send_len(dsm_ftransmit.tx_packet, dsm_ftransmit.tx_packet_length);
+
+		dsm_ftransmit.timer = false;
+	}
+
+	if(dsm_ftransmit.rx_status == 0)
+		return;
 
 	// Abort the receive
 	cyrf_write_register(CYRF_XACT_CFG, CYRF_MODE_SYNTH_RX | CYRF_FRC_END);
-	cyrf_write_register(CYRF_RX_ABORT, 0x00); //TODO: CYRF_RX_ABORT_EN
+	cyrf_write_register(CYRF_RX_ABORT, 0x00);
 
-	// Check if length bigger or equal to two
-	if(packet_length < 2)
-		return;
+	// Check if we got the correct packet
+	if(dsm_ftransmit.rx_packet_length > 2 &&
+		dsm_ftransmit.rx_packet[0] == dsm_ftransmit.mfg_id[2] && dsm_ftransmit.rx_packet[1] == dsm_ftransmit.mfg_id[3]) {
 
-	// Check the receiver status
-	if(error && !(rx_status & CYRF_BAD_CRC))
-		return;
-	if(packet[0] != dsm_ftransmit.mfg_id[2] || packet[1] != dsm_ftransmit.mfg_id[3])
-		return;
+		// Start the timer
+		timer_dsm_stop();
+		timer_dsm_set(DSM_FTRANSFER_RECV_TIME);
+		dsm_ftransmit.rx_packet_count++;
 
-	// Invert the CRC when received bad CRC
-	if (error && (rx_status & CYRF_BAD_CRC))
-		dsm_ftransmit.crc_seed = ~dsm_ftransmit.crc_seed;
+		// Set RX led on
+	#ifdef LED_RX
+		LED_ON(LED_RX);
+	#endif
 
-	// Start the timer
-	timer_dsm_stop();
-	timer_dsm_set(DSM_FTRANSFER_RECV_TIME);
-	dsm_ftransmit.rx_packet_count++;
+		// We got a data pakcet
 
-	// Set RX led on
-#ifdef LED_RX
-	LED_ON(LED_RX);
-#endif
+		// Create a packet
+		uint8_t tx_data[14];
+		uint8_t tx_size = convert_extract(&dsm_ftransmit.tx_buffer, tx_data, 14);
+		dsm_ftransmit_create_packet(tx_data, tx_size);
 
-	// We got a data pakcet
+		// Send the packet with a timeout, need to fix the sleep
+		u32 count = 400;
+		while (count > 0) {
+			count--;
+		}
+		cyrf_send_len(dsm_ftransmit.tx_packet, dsm_ftransmit.tx_packet_length);
 
-	// Create a packet
-	uint8_t tx_data[14];
-	uint8_t tx_size = convert_extract(&dsm_ftransmit.tx_buffer, tx_data, 14);
-	dsm_ftransmit_create_packet(tx_data, tx_size);
-
-	// Send the packet with a timeout, need to fix the sleep
-	u32 count = 400;
-	while (count > 0) {
-		count--;
+		// Output the data received
+		cdcacm_send((char*)&dsm_ftransmit.rx_packet[2], dsm_ftransmit.rx_packet_length-2);
 	}
-	cyrf_send_len(dsm_ftransmit.tx_packet, dsm_ftransmit.tx_packet_length);
 
-	// Output the data received
-	cdcacm_send((char*)&packet[2], packet_length-2);
+	dsm_ftransmit.rx_status = 0;
+}
+
+/**
+ * DSM FTRANSMIT receive callback
+ */
+void dsm_ftransmit_receive_cb(__attribute__((unused)) bool error) {
+	// When we already received something ignore
+	if(dsm_ftransmit.rx_status != 0)
+		return;
+
+	// Get the receive count, rx_status and the packet
+	dsm_ftransmit.rx_packet_length = cyrf_read_register(CYRF_RX_COUNT);
+	dsm_ftransmit.rx_status = cyrf_get_rx_status();
+	cyrf_recv_len(dsm_ftransmit.rx_packet, dsm_ftransmit.rx_packet_length);
 }
 
 /**

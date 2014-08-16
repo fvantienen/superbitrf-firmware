@@ -67,7 +67,8 @@ enum Protocol {
 #define PROTOCOL_INIT 0
 #define PROTOCOL_START 1
 #define PROTOCOL_STOP 2
-extern void (*protocol_functions[][3])(void);
+#define PROTOCOL_LOOP 3
+extern void (*protocol_functions[][4])(void);
 
 struct Config {
 	uint32_t version;					/**< The static version number of the config */

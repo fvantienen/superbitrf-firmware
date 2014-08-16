@@ -48,7 +48,10 @@ int main(void) {
 		protocol_functions[usbrf_config.protocol][PROTOCOL_START]();
 
 	/* The main loop */
-	while (1);
+	while (1) {
+		if(protocol_functions[usbrf_config.protocol][PROTOCOL_LOOP] != NULL)
+			protocol_functions[usbrf_config.protocol][PROTOCOL_LOOP]();
+	}
 
 	return 0;
 }

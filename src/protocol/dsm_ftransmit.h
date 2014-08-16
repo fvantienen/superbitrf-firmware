@@ -30,7 +30,12 @@ struct DsmFTransmit {
 	uint8_t tx_packet[16];						/**< The transmit packet */
 	uint8_t tx_packet_length;					/**< The transmit packet length */
 	uint32_t tx_packet_count;					/**< The amount of packets send */
+
+	bool timer;
+
+	uint8_t rx_status;								  /**< When we receive a new rx packet */
 	uint8_t rx_packet[16];						/**< The receive packet */
+	uint8_t rx_packet_length;					/**< The packet length */
 	uint32_t rx_packet_count;					/**< The amount of packets received */
 
 	uint8_t rf_channel;							/**< The current RF channel*/
@@ -42,5 +47,6 @@ struct DsmFTransmit {
 void dsm_ftransmit_init(void);
 void dsm_ftransmit_start(void);
 void dsm_ftransmit_stop(void);
+void dsm_ftransmit_loop(void);
 
 #endif /* PROTOCOL_DSM_FTRANSMIT_H_ */
