@@ -26,7 +26,7 @@ OBJS += modules/led.o modules/button.o modules/timer.o modules/cdcacm.o modules/
 OBJS += helper/convert.o helper/dsm.o
 
 # The different kind of protocols available
-OBJS += protocol/dsm_receiver.o protocol/dsm_transmitter.o protocol/dsm_mitm.o
+OBJS += protocol/dsm_receiver.o protocol/dsm_transmitter.o protocol/dsm_mitm.o protocol/fastrf.o
 
 include ../Makefile.include
 

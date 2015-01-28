@@ -58,6 +58,10 @@ int main(void) {
 	while (1) {
 		// Run the cdcacm TODO: fix polling
 		cdcacm_run();
+
+		// Event loop
+		if(protocol_functions[usbrf_config.protocol][PROTOCOL_EVENT] != NULL)
+			protocol_functions[usbrf_config.protocol][PROTOCOL_EVENT]();
 	}
 
 	return 0;

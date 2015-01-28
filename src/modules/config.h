@@ -28,6 +28,7 @@
 #include "../protocol/dsm_receiver.h"
 #include "../protocol/dsm_transmitter.h"
 #include "../protocol/dsm_mitm.h"
+#include "../protocol/fastrf.h"
 
 /**
  * Includes for debugging
@@ -54,6 +55,7 @@ enum Protocol {
 	DSM_RECEIVER		= 0,
 	DSM_TRANSMITTER,
 	DSM_MITM,
+	FASTRF,
 	DSM_SCANNER,
 	DSM_HIJACK,
 	TUDELFT_DELFY
@@ -65,7 +67,8 @@ enum Protocol {
 #define PROTOCOL_INIT 0
 #define PROTOCOL_START 1
 #define PROTOCOL_STOP 2
-extern void (*protocol_functions[][3])(void);
+#define PROTOCOL_EVENT 3
+extern void (*protocol_functions[][4])(void);
 
 struct Config {
 	uint32_t version;					/**< The static version number of the config */
